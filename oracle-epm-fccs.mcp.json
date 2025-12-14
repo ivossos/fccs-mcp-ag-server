@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "fccs-agent": {
+      "command": "python",
+      "args": [
+        "-m",
+        "cli.mcp_server"
+      ],
+      "cwd": "C:/Users/ivoss/Downloads/Projetos/agentic/fccs-mcp-ag-server",
+      "env": {
+        "FCCS_MOCK_MODE": "true"
+      }
+    }
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "FCCS Agent API",
+    "description": "Oracle FCCS Agentic MCP Server API for ChatGPT Custom GPT",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://fccs-mcp-server-xxxxx-uc.a.run.app",
+      "description": "Cloud Run Production Server"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Check if the server is running",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Server is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools": {
+      "get": {
+        "summary": "List all available tools",
+        "description": "Get a list of all FCCS tools available",
+        "operationId": "listTools",
+        "responses": {
+          "200": {
+            "description": "List of tools",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/execute": {
+      "post": {
+        "summary": "Execute a tool",
+        "description": "Execute any FCCS tool by name",
+        "operationId": "executeTool",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tool_name"],
+                "properties": {
+                  "tool_name": {
+                    "type": "string",
+                    "description": "Name of the tool to execute",
+                    "example": "get_application_info"
+                  },
+                  "arguments": {
+                    "type": "object",
+                    "description": "Tool arguments",
+                    "additionalProperties": true
+                  },
+                  "session_id": {
+                    "type": "string",
+                    "description": "Session ID for tracking",
+                    "default": "default"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool execution result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/message": {
+      "post": {
+        "summary": "MCP-compatible message endpoint",
+        "description": "Handle MCP-style JSON-RPC messages for ChatGPT",
+        "operationId": "mcpMessage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["method"],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": ["tools/list", "tools/call"],
+                    "description": "MCP method name"
+                  },
+                  "params": {
+                    "type": "object",
+                    "description": "Method parameters",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "MCP response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
