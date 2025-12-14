@@ -552,6 +552,10 @@ async def check_unbalanced_entities_2024():
         print("=" * 80)
         print()
         
+        # Initialize variables that may be used in report generation
+        level_counts = {}
+        largest_imbalances = []
+        
         if not unbalanced_entities:
             print("✓ No unbalanced entities found!")
             print(f"All {checked - no_data} entities with data are balanced.")
@@ -591,7 +595,6 @@ async def check_unbalanced_entities_2024():
             
             # Statistics by level
             print("Unbalanced entities by level:")
-            level_counts = {}
             for entity in unbalanced_entities:
                 level = entity["level"]
                 level_counts[level] = level_counts.get(level, 0) + 1
@@ -608,14 +611,15 @@ async def check_unbalanced_entities_2024():
             for i, entity in enumerate(largest_imbalances, 1):
                 print(f"  {i}. {entity['name']}: ${abs(entity['difference']):,.2f}")
         
-        # Generate report
-        print()
-        print("=" * 80)
-        print("GENERATING REPORT")
-        print("=" * 80)
-        report_filename = generate_report(unbalanced_entities, checked, no_data, level_counts, largest_imbalances)
-        print(f"[OK] Report generated: {report_filename}")
-        print()
+        # Generate report (only if there are unbalanced entities)
+        if unbalanced_entities:
+            print()
+            print("=" * 80)
+            print("GENERATING REPORT")
+            print("=" * 80)
+            report_filename = generate_report(unbalanced_entities, checked, no_data, level_counts, largest_imbalances)
+            print(f"[OK] Report generated: {report_filename}")
+            print()
         
         await close_agent()
         
