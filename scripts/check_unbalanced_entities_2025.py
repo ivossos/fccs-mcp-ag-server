@@ -1,4 +1,4 @@
-"""Check unbalanced entities for 2024 - from bottom level to top level.
+"""Check unbalanced entities for 2025 - from bottom level to top level.
 
 An entity is considered unbalanced if:
 Total Assets ≠ Total Liabilities and Equity
@@ -154,7 +154,7 @@ def generate_report(
 ) -> str:
     """Generate HTML report file with unbalanced entities."""
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    report_filename = f"Unbalanced_Entities_Report_2024_{timestamp}.html"
+    report_filename = f"Unbalanced_Entities_Report_2025_{timestamp}.html"
     project_root = Path(__file__).parent.parent
     
     # Sort entities by level for display
@@ -165,7 +165,7 @@ def generate_report(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unbalanced Entities Report - 2024</title>
+    <title>Unbalanced Entities Report - 2025</title>
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -268,9 +268,9 @@ def generate_report(
 </head>
 <body>
     <div class="container">
-        <h1>Unbalanced Entities Report - 2024</h1>
+        <h1>Unbalanced Entities Report - 2025</h1>
         <p><strong>Generated:</strong> {datetime.now().strftime('%B %d, %Y %H:%M:%S')}</p>
-        <p><strong>Report Period:</strong> FY24 (December YTD)</p>
+        <p><strong>Report Period:</strong> FY25 (December YTD)</p>
         <p><strong>Balance Check:</strong> Total Assets vs Total Liabilities and Equity</p>
         
         <div class="summary">
@@ -606,7 +606,7 @@ def generate_report(
     return str(report_path)
 
 
-async def get_balance_sheet_values(entity_name: str, year: str = "FY24") -> Optional[Tuple[float, float, float]]:
+async def get_balance_sheet_values(entity_name: str, year: str = "FY25") -> Optional[Tuple[float, float, float]]:
     """Get balance sheet values for an entity.
     
     Returns: (Total Assets, Total Liabilities and Equity, Difference) or None if error.
@@ -666,10 +666,10 @@ async def get_balance_sheet_values(entity_name: str, year: str = "FY24") -> Opti
         return None
 
 
-async def check_unbalanced_entities_2024():
-    """Check unbalanced entities for 2024, from bottom to top level."""
+async def check_unbalanced_entities_2025():
+    """Check unbalanced entities for 2025, from bottom to top level."""
     print("=" * 80)
-    print("UNBALANCED ENTITIES CHECK - 2024")
+    print("UNBALANCED ENTITIES CHECK - 2025")
     print("Checking from bottom level to top level")
     print("=" * 80)
     print()
@@ -738,7 +738,7 @@ async def check_unbalanced_entities_2024():
             if checked % 20 == 0:
                 print(f"  Progress: {checked}/{len(filtered_entities)} (Found {len(unbalanced_entities)} unbalanced, {no_data} no data)...")
             
-            balance_values = await get_balance_sheet_values(entity_name, "FY24")
+            balance_values = await get_balance_sheet_values(entity_name, "FY25")
             
             if balance_values is None:
                 no_data += 1
@@ -760,7 +760,7 @@ async def check_unbalanced_entities_2024():
         
         print()
         print("=" * 80)
-        print("RESULTS - UNBALANCED ENTITIES FOR 2024")
+        print("RESULTS - UNBALANCED ENTITIES FOR 2025")
         print("=" * 80)
         print()
         
@@ -843,5 +843,6 @@ async def check_unbalanced_entities_2024():
 
 
 if __name__ == "__main__":
-    asyncio.run(check_unbalanced_entities_2024())
+    asyncio.run(check_unbalanced_entities_2025())
+
 

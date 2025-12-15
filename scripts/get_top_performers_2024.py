@@ -112,3 +112,4 @@ async def get_top_performers_2024():
 if __name__ == "__main__":
     asyncio.run(get_top_performers_2024())
 
+

@@ -1,8 +1,9 @@
-"""Report tools - generate_report, get_report_job_status."""
+"""Report tools - generate_report, get_report_job_status, generate_report_script."""
 
 from typing import Any, Optional
 
 from fccs_agent.client.fccs_client import FccsClient
+from fccs_agent.reporting.script_generator import generate_report_script as _generate_report_script
 
 _client: FccsClient = None
 
@@ -72,6 +73,43 @@ async def get_report_job_status(
     return {"status": "success", "data": result}
 
 
+async def generate_report_script(
+    script_name: str,
+    report_type: str = "HTML",
+    description: str = "Custom FCCS report",
+    accounts: Optional[list[str]] = None,
+    entities: Optional[list[str]] = None,
+    periods: Optional[list[str]] = None,
+    years: Optional[list[str]] = None,
+    scenarios: Optional[list[str]] = None
+) -> dict[str, Any]:
+    """Generate a Python script template for custom FCCS reporting / Gerar script Python para relatorio customizado.
+
+    Args:
+        script_name: Name of the script file (without .py extension).
+        report_type: Type of report - HTML, PDF, or CSV (default: HTML).
+        description: Description of what the report does.
+        accounts: List of account names to query.
+        entities: List of entity names to query.
+        periods: List of periods to query (e.g., ['Jan', 'Feb', 'Dec']).
+        years: List of years to query (e.g., ['FY24', 'FY25']).
+        scenarios: List of scenarios to query (e.g., ['Actual', 'Budget']).
+
+    Returns:
+        dict: Path to generated script and summary.
+    """
+    return _generate_report_script(
+        script_name=script_name,
+        report_type=report_type,
+        description=description,
+        accounts=accounts,
+        entities=entities,
+        periods=periods,
+        years=years,
+        scenarios=scenarios
+    )
+
+
 TOOL_DEFINITIONS = [
     {
         "name": "generate_report",
@@ -134,6 +172,54 @@ TOOL_DEFINITIONS = [
                 },
             },
             "required": ["job_id"],
+        },
+    },
+    {
+        "name": "generate_report_script",
+        "description": "Generate a Python script template for custom FCCS reporting / Gerar script Python para relatorio customizado",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "script_name": {
+                    "type": "string",
+                    "description": "Name of the script file (without .py extension)",
+                },
+                "report_type": {
+                    "type": "string",
+                    "enum": ["HTML", "PDF", "CSV"],
+                    "description": "Type of report (default: HTML)",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Description of what the report does",
+                },
+                "accounts": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of account names to query",
+                },
+                "entities": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of entity names to query",
+                },
+                "periods": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of periods to query (e.g., ['Jan', 'Feb', 'Dec'])",
+                },
+                "years": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of years to query (e.g., ['FY24', 'FY25'])",
+                },
+                "scenarios": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of scenarios to query (e.g., ['Actual', 'Budget'])",
+                },
+            },
+            "required": ["script_name"],
         },
     },
 ]

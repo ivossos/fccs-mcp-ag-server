@@ -14,3 +14,4 @@ python scripts\init_db.py
 echo.
 pause
 
+

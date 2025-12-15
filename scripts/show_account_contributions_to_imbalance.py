@@ -391,18 +391,32 @@ def generate_html_report(
         </div>
         
         <h2>Level 1 Elimination Analysis</h2>
+        <div class="info">
+            <h3>Understanding Elimination Analysis</h3>
+            <p>Level 1 entities are parent entities that consolidate multiple child entities. When a Level 1 entity is unbalanced, 
+            we analyze whether the imbalance is explained by:</p>
+            <ul>
+                <li><strong>Child Entity Imbalances:</strong> If all child imbalances sum to the parent imbalance, the issue is at the child level</li>
+                <li><strong>Missing Eliminations:</strong> If parent imbalance ≠ sum of child imbalances, there may be missing intercompany eliminations</li>
+            </ul>
+            <p><strong>Potential Missing Elimination</strong> = Parent Imbalance - Sum of Child Imbalances</p>
+            <p>A significant difference (>$1,000) suggests missing intercompany eliminations or consolidation adjustments.</p>
+        </div>
 """
     
     # Add level 1 elimination analysis
     if level1_analysis:
         entities_with_missing_elim = [a for a in level1_analysis if abs(a["potential_missing_elimination"]) > 1000]
+        entities_explained_by_children = [a for a in level1_analysis if abs(a["potential_missing_elimination"]) <= 1000]
         
         if entities_with_missing_elim:
+            total_missing = sum(a["potential_missing_elimination"] for a in entities_with_missing_elim)
             html_content += f"""
         <div class="warning">
-            <strong>WARNING:</strong> {len(entities_with_missing_elim)} Level 1 entities show potential missing eliminations
+            <strong>WARNING:</strong> {len(entities_with_missing_elim)} Level 1 entities show potential missing eliminations totaling ${total_missing:,.2f}
         </div>
         
+        <h3>Entities with Potential Missing Eliminations</h3>
         <table>
             <thead>
                 <tr>
@@ -411,6 +425,7 @@ def generate_html_report(
                     <th style="text-align: right;">Child Imbalance Total</th>
                     <th style="text-align: right;">Potential Missing Elimination</th>
                     <th>Unbalanced Children</th>
+                    <th>Analysis</th>
                 </tr>
             </thead>
             <tbody>
@@ -418,12 +433,55 @@ def generate_html_report(
             for analysis in sorted(entities_with_missing_elim, key=lambda x: abs(x["potential_missing_elimination"]), reverse=True):
                 elim_class = "negative" if analysis["potential_missing_elimination"] < 0 else "positive"
                 children_info = f"{analysis['unbalanced_children_count']}/{analysis['total_children_count']}"
+                
+                # Add analysis note
+                if abs(analysis["potential_missing_elimination"]) > 100000:
+                    analysis_note = "HIGH PRIORITY - Large missing elimination"
+                elif abs(analysis["potential_missing_elimination"]) > 50000:
+                    analysis_note = "MEDIUM PRIORITY - Significant missing elimination"
+                else:
+                    analysis_note = "Review recommended"
+                
+                html_content += f"""
+                <tr>
+                    <td><strong>{analysis['entity']}</strong></td>
+                    <td style="text-align: right;">${analysis['parent_imbalance']:,.2f}</td>
+                    <td style="text-align: right;">${analysis['child_imbalance_total']:,.2f}</td>
+                    <td style="text-align: right;" class="{elim_class}"><strong>${analysis['potential_missing_elimination']:,.2f}</strong></td>
+                    <td>{children_info}</td>
+                    <td style="font-size: 12px; color: #666;">{analysis_note}</td>
+                </tr>
+"""
+            html_content += """
+            </tbody>
+        </table>
+"""
+        
+        if entities_explained_by_children:
+            html_content += f"""
+        <h3>Entities Explained by Child Imbalances</h3>
+        <div class="info">
+            {len(entities_explained_by_children)} Level 1 entities have imbalances that are fully explained by their child entity imbalances. 
+            These do not require elimination adjustments, but the underlying child entity imbalances should be addressed.
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Entity Name</th>
+                    <th style="text-align: right;">Parent Imbalance</th>
+                    <th style="text-align: right;">Child Imbalance Total</th>
+                    <th>Unbalanced Children</th>
+                </tr>
+            </thead>
+            <tbody>
+"""
+            for analysis in sorted(entities_explained_by_children, key=lambda x: abs(x["parent_imbalance"]), reverse=True)[:10]:
+                children_info = f"{analysis['unbalanced_children_count']}/{analysis['total_children_count']}"
                 html_content += f"""
                 <tr>
                     <td>{analysis['entity']}</td>
                     <td style="text-align: right;">${analysis['parent_imbalance']:,.2f}</td>
                     <td style="text-align: right;">${analysis['child_imbalance_total']:,.2f}</td>
-                    <td style="text-align: right;" class="{elim_class}"><strong>${analysis['potential_missing_elimination']:,.2f}</strong></td>
                     <td>{children_info}</td>
                 </tr>
 """
@@ -431,74 +489,163 @@ def generate_html_report(
             </tbody>
         </table>
 """
-        else:
-            html_content += """
+    
+    # Add sample entity analysis with detailed account breakdowns
+    html_content += """
+        <h2>Detailed Entity Analysis</h2>
         <div class="info">
-            No significant missing eliminations detected in Level 1 entities.
+            <p>The following section provides detailed account-level analysis for the top entities with largest imbalances. 
+            Each entity shows the contributing accounts that may be causing the imbalance.</p>
         </div>
 """
     
-    # Add sample entity analysis
-    html_content += """
-        <h2>Sample Entity Analysis</h2>
-        <p>Top entities by largest imbalance with account-level breakdown:</p>
+    # Create entity-to-contribution mapping
+    contrib_map = {c["entity"]: c for c in account_contributions}
+    
+    for i, entity in enumerate(sorted(sample_entities, key=lambda x: abs(x["difference"]), reverse=True), 1):
+        diff_class = "negative" if entity["difference"] < 0 else "positive"
+        level_label = "LEAF" if entity["level"] == 0 else "LEVEL 1"
+        contrib = contrib_map.get(entity["name"], {})
+        
+        html_content += f"""
+        <h3>{i}. {entity['name']} ({level_label})</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Entity Name</th>
-                    <th>Level</th>
-                    <th style="text-align: right;">Assets</th>
-                    <th style="text-align: right;">Liab + Equity</th>
-                    <th style="text-align: right;">Difference</th>
+                    <th>Metric</th>
+                    <th style="text-align: right;">Amount</th>
                 </tr>
             </thead>
             <tbody>
-"""
-    
-    for entity in sorted(sample_entities, key=lambda x: abs(x["difference"]), reverse=True):
-        diff_class = "negative" if entity["difference"] < 0 else "positive"
-        level_label = "LEAF" if entity["level"] == 0 else "LEVEL 1"
-        html_content += f"""
                 <tr>
-                    <td><strong>{entity['name']}</strong></td>
-                    <td>{level_label}</td>
+                    <td><strong>Total Assets</strong></td>
                     <td style="text-align: right;">${entity['assets']:,.2f}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Liabilities + Equity</strong></td>
                     <td style="text-align: right;">${entity['liabilities_equity']:,.2f}</td>
+                </tr>
+                <tr style="background-color: #f8f9fa;">
+                    <td><strong>Imbalance (Difference)</strong></td>
                     <td style="text-align: right;" class="{diff_class}"><strong>${entity['difference']:,.2f}</strong></td>
                 </tr>
-"""
-    
-    html_content += """
             </tbody>
         </table>
+"""
         
-        <h2>Top Contributing Accounts</h2>
+        if contrib and contrib.get("accounts"):
+            html_content += """
+        <h4>Top Contributing Accounts</h4>
         <table>
             <thead>
                 <tr>
                     <th>Account Name</th>
+                    <th>Type</th>
+                    <th style="text-align: right;">Value</th>
+                    <th>Impact</th>
+                </tr>
+            </thead>
+            <tbody>
+"""
+            # Sort accounts by absolute value
+            sorted_accounts = sorted(contrib["accounts"], key=lambda x: abs(x["value"]), reverse=True)
+            
+            for acc in sorted_accounts[:15]:
+                acc_type = acc["type"]
+                value = acc["value"]
+                impact = "Increases Assets" if acc_type == "Asset" and value > 0 else \
+                         "Decreases Assets" if acc_type == "Asset" and value < 0 else \
+                         "Increases Liab/Equity" if acc_type == "Liability/Equity" and value > 0 else \
+                         "Decreases Liab/Equity"
+                
+                value_class = "negative" if value < 0 else "positive"
+                html_content += f"""
+                <tr>
+                    <td>{acc['account']}</td>
+                    <td>{acc_type}</td>
+                    <td style="text-align: right;" class="{value_class}">${value:,.2f}</td>
+                    <td style="font-size: 12px; color: #666;">{impact}</td>
+                </tr>
+"""
+            html_content += """
+            </tbody>
+        </table>
+"""
+        
+        html_content += "<br>"
+    
+    html_content += """
+        <h2>Account Frequency Analysis</h2>
+        <div class="info">
+            <p>The following accounts appear most frequently in unbalanced entities, suggesting they may be common sources of balance sheet issues.</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Account Name</th>
                     <th style="text-align: right;">Frequency</th>
+                    <th>Percentage of Sample</th>
+                    <th>Analysis</th>
                 </tr>
             </thead>
             <tbody>
 """
     
-    for account, freq in sorted(account_frequency.items(), key=lambda x: x[1], reverse=True)[:15]:
+    total_sample = len(sample_entities)
+    for rank, (account, freq) in enumerate(sorted(account_frequency.items(), key=lambda x: x[1], reverse=True)[:15], 1):
+        percentage = (freq / total_sample * 100) if total_sample > 0 else 0
+        if percentage > 80:
+            analysis = "Very common - likely systemic issue"
+        elif percentage > 50:
+            analysis = "Common - review recommended"
+        else:
+            analysis = "Occasional occurrence"
+        
         html_content += f"""
                 <tr>
+                    <td><strong>{rank}</strong></td>
                     <td>{account}</td>
                     <td style="text-align: right;"><strong>{freq}</strong></td>
+                    <td style="text-align: right;">{percentage:.1f}%</td>
+                    <td style="font-size: 12px; color: #666;">{analysis}</td>
                 </tr>
 """
     
-    html_content += f"""
+    html_content += """
             </tbody>
         </table>
         
+        <h2>Recommendations</h2>
+        <div class="warning">
+            <h3>Immediate Actions Required</h3>
+            <ol>
+                <li><strong>Review Level 1 Entities with Missing Eliminations:</strong> Investigate the {len(entities_with_missing_elim) if entities_with_missing_elim else 0} entities identified with potential missing eliminations</li>
+                <li><strong>Address High-Frequency Accounts:</strong> Focus on accounts that appear in >50% of unbalanced entities</li>
+                <li><strong>Leaf Level Entities:</strong> Fix imbalances at the leaf level to prevent roll-up issues</li>
+                <li><strong>Intercompany Transactions:</strong> Verify all intercompany transactions are properly eliminated</li>
+            </ol>
+        </div>
+        
+        <div class="info">
+            <h3>Investigation Priorities</h3>
+            <ul>
+                <li><strong>Priority 1:</strong> Entities with imbalances >$1M and missing eliminations >$50K</li>
+                <li><strong>Priority 2:</strong> Entities with imbalances >$500K</li>
+                <li><strong>Priority 3:</strong> Entities with imbalances >$100K</li>
+            </ul>
+        </div>
+"""
+    
+    # Add footer
+    entities_with_missing_elim = [a for a in level1_analysis if abs(a["potential_missing_elimination"]) > 1000] if level1_analysis else []
+    
+    html_content += f"""
         <div class="footer">
             <p><strong>FCCS Account Contributions to Imbalanced Entities Report</strong></p>
             <p>Data from Oracle EPM Cloud Financial Consolidation and Close (FCCS)</p>
             <p>Application: Consol | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>Entities with Missing Eliminations: {len(entities_with_missing_elim)}</p>
         </div>
     </div>
 </body>

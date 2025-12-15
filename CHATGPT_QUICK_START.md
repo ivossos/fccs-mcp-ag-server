@@ -121,3 +121,4 @@ Try these in ChatGPT:
 - See `CHATGPT_CONFIGURATION.md` for detailed guide
 - Check Cloud Run logs: `gcloud run logs tail fccs-mcp-server --region us-central1`
 
+
