@@ -4,7 +4,7 @@ import hashlib
 import json
 import random
 from datetime import datetime
-from typing import Any, Optional, dict, list
+from typing import Any, Optional, Dict, List
 from collections import defaultdict
 
 import numpy as np
