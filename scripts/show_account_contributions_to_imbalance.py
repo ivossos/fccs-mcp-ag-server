@@ -353,21 +353,41 @@ def generate_html_report(
             <div class="summary-grid">
                 <div class="summary-item">
                     <strong>Total Unbalanced Entities</strong>
-                    <span>{len(unbalanced_entities)}</span>
+                    <span style="font-size: 24px; font-weight: bold;">{len(unbalanced_entities)}</span>
                 </div>
                 <div class="summary-item">
                     <strong>Leaf Level (0) Unbalanced</strong>
-                    <span style="color: #d32f2f; font-weight: bold;">{len(leaf_entities)}</span>
+                    <span style="color: #d32f2f; font-weight: bold; font-size: 24px;">{len(leaf_entities)}</span>
                 </div>
                 <div class="summary-item">
                     <strong>Level 1 Unbalanced</strong>
-                    <span style="color: #d32f2f; font-weight: bold;">{len(level1_entities)}</span>
+                    <span style="color: #d32f2f; font-weight: bold; font-size: 24px;">{len(level1_entities)}</span>
                 </div>
                 <div class="summary-item">
                     <strong>Sample Analyzed</strong>
-                    <span>{len(sample_entities)}</span>
+                    <span style="font-size: 24px; font-weight: bold;">{len(sample_entities)}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>Total Leaf Imbalance</strong>
+                    <span style="color: #d32f2f; font-weight: bold;">${sum(e['difference'] for e in leaf_entities):,.2f}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>Total Level 1 Imbalance</strong>
+                    <span style="color: #d32f2f; font-weight: bold;">${sum(e['difference'] for e in level1_entities):,.2f}</span>
                 </div>
             </div>
+        </div>
+        
+        <div class="info">
+            <h3>Report Overview</h3>
+            <p>This report analyzes balance sheet imbalances for entities at the leaf level (level 0) and one level above (level 1) in the entity hierarchy. 
+            An entity is considered unbalanced when Total Assets ≠ Total Liabilities and Equity (tolerance: $0.01).</p>
+            <p><strong>Key Analysis Areas:</strong></p>
+            <ul>
+                <li><strong>Account Contributions:</strong> Identifies which specific accounts are contributing to each entity's imbalance</li>
+                <li><strong>Elimination Analysis:</strong> Checks if Level 1 entity imbalances are due to missing intercompany eliminations</li>
+                <li><strong>Pattern Recognition:</strong> Identifies common accounts that frequently appear in unbalanced entities</li>
+            </ul>
         </div>
         
         <h2>Level 1 Elimination Analysis</h2>

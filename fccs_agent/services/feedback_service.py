@@ -261,8 +261,12 @@ def after_tool_callback(
     tool_name: str,
     args: dict,
     result: Any
-) -> None:
-    """Log tool execution result (call after tool execution)."""
+) -> Optional[int]:
+    """Log tool execution result (call after tool execution).
+    
+    Returns:
+        Execution ID if logging was successful, None otherwise.
+    """
     start_time = _execution_start_times.pop(session_id, time.time())
     execution_time_ms = (time.time() - start_time) * 1000
 
@@ -271,7 +275,7 @@ def after_tool_callback(
 
     if _feedback_service:
         try:
-            _feedback_service.log_execution(
+            execution_id = _feedback_service.log_execution(
                 session_id=session_id,
                 tool_name=tool_name,
                 arguments=args,
@@ -280,7 +284,12 @@ def after_tool_callback(
                 error_message=error_message,
                 execution_time_ms=execution_time_ms
             )
+            
+            return execution_id
         except Exception as e:
             # Silently fail feedback logging to not break tool execution
             import sys
             print(f"Warning: Failed to log execution to feedback service: {e}", file=sys.stderr)
+            return None
+    
+    return None

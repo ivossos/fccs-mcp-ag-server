@@ -28,6 +28,13 @@ class FCCSConfig(BaseSettings):
     # Server
     port: int = Field(8080, alias="PORT")
 
+    # Reinforcement Learning Configuration
+    rl_enabled: bool = Field(True, alias="RL_ENABLED")
+    rl_exploration_rate: float = Field(0.1, alias="RL_EXPLORATION_RATE")
+    rl_learning_rate: float = Field(0.1, alias="RL_LEARNING_RATE")
+    rl_discount_factor: float = Field(0.9, alias="RL_DISCOUNT_FACTOR")
+    rl_min_samples: int = Field(5, alias="RL_MIN_SAMPLES")  # Minimum samples before using RL
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

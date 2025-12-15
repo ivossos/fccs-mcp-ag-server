@@ -32,6 +32,9 @@ dependencies = [
     # Web server
     "fastapi>=0.115.0",
     "uvicorn>=0.32.0",
+
+    # Reinforcement Learning
+    "numpy>=1.24.0",
 ]
 
 [project.optional-dependencies]
