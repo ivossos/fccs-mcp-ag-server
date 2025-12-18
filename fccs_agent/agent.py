@@ -59,6 +59,7 @@ async def initialize_agent(cfg: Optional[FCCSConfig] = None) -> str:
     data.set_client(_fccs_client)
     reports.set_client(_fccs_client)
     consolidation.set_client(_fccs_client)
+    memo.set_client(_fccs_client)
 
     # Initialize feedback service (optional - don't break if it fails)
     feedback_service = None
@@ -103,6 +104,7 @@ async def initialize_agent(cfg: Optional[FCCSConfig] = None) -> str:
             journals.set_app_name(_app_name)
             data.set_app_name(_app_name)
             consolidation.set_app_name(_app_name)
+            memo.set_app_name(_app_name)
 
             return _app_name
         else:
@@ -235,43 +237,53 @@ async def execute_tool(
 
     try:
         result = await handler(**arguments)
-        
+
+        # Update session state FIRST (needed for next context hash calculation)
+        session_state["tool_sequence"].append(tool_name)
+        session_state["previous_tool"] = tool_name
+        session_state["session_length"] += 1
+
         # Track execution end (non-blocking)
         # This will also trigger RL policy update via feedback_service callback
         try:
             execution_id = after_tool_callback(session_id, tool_name, arguments, result)
-            
+
             # Update RL policy with context if available
             if rl_service and context_hash and execution_id:
                 try:
+                    # Calculate next context hash (state after action)
+                    next_context_hash = rl_service.tool_selector.create_context_hash(
+                        user_query or session_state.get("user_query", ""),
+                        session_state["previous_tool"],  # Now updated to current tool
+                        session_state["session_length"]   # Now incremented
+                    )
+
                     # Get execution from feedback service to calculate reward
                     feedback_service = get_feedback_service()
                     if feedback_service:
                         from sqlalchemy.orm import sessionmaker
                         from sqlalchemy import create_engine
                         from fccs_agent.services.feedback_service import ToolExecution
-                        
+
                         engine = create_engine(config.database_url)
                         Session = sessionmaker(bind=engine)
                         with Session() as session:
                             execution = session.query(ToolExecution).get(execution_id)
                             if execution:
                                 reward = rl_service.calculate_reward(execution)
+                                # Full Q-learning update with next state
                                 rl_service.update_policy(
                                     session_id,
                                     tool_name,
                                     context_hash,
-                                    reward
+                                    reward,
+                                    next_context_hash=next_context_hash,
+                                    available_tools=list(TOOL_HANDLERS.keys())
                                 )
                 except Exception:
                     pass  # Silently fail RL updates
         except Exception:
             pass  # Ignore feedback service errors
-
-        # Update session state
-        session_state["tool_sequence"].append(tool_name)
-        session_state["previous_tool"] = tool_name
-        session_state["session_length"] += 1
 
         # Add RL metadata to result if available
         if rl_service and context_hash:

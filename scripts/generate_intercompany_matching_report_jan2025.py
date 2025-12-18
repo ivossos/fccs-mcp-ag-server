@@ -637,9 +637,23 @@ async def generate_intercompany_matching_report():
             print(f"  Sample entities: {', '.join(valid_entities[:5])}...")
         print()
         
+        # VALIDATION MODE: Query a few entities to find non-null amounts
+        # Set to False for full report
+        VALIDATION_MODE = True
+        MAX_ENTITIES_TO_TEST = 20
+        MAX_NON_NULL_TO_FIND = 5  # Stop after finding this many non-null values
+        
+        if VALIDATION_MODE:
+            valid_entities = valid_entities[:MAX_ENTITIES_TO_TEST]
+            print(f"[VALIDATION MODE] Testing first {len(valid_entities)} entities")
+            print(f"  Will stop after finding {MAX_NON_NULL_TO_FIND} non-null amounts")
+            print(f"  Testing entities: {', '.join(valid_entities[:10])}...")
+            print()
+        
         # Query data for each ICO account and entity
         print("Querying ICO account data...")
-        print("(This may take several minutes)")
+        if not VALIDATION_MODE:
+            print("(This may take several minutes)")
         print()
         
         # Store all entity-account combinations
@@ -649,10 +663,16 @@ async def generate_intercompany_matching_report():
         total_queried = 0
         total_with_data = 0
         
-        for account_name in intercompany_accounts:
-            print(f"Processing account: {account_name}")
+        for account_idx, account_name in enumerate(intercompany_accounts, 1):
+            print(f"Processing account {account_idx}/{len(intercompany_accounts)}: {account_name}")
+            account_data_count = 0
             
-            for entity_name in valid_entities:
+            # In validation mode, stop early if we found enough data
+            if VALIDATION_MODE and total_with_data >= MAX_NON_NULL_TO_FIND:
+                print(f"  [VALIDATION] Found {total_with_data} non-null amounts. Stopping early.")
+                break
+            
+            for entity_idx, entity_name in enumerate(valid_entities, 1):
                 total_queried += 1
                 
                 value = await get_ico_account_value(
@@ -664,6 +684,7 @@ async def generate_intercompany_matching_report():
                 
                 if value is not None and abs(value) > 0.01:
                     total_with_data += 1
+                    account_data_count += 1
                     entity_info = entities_map.get(entity_name, {})
                     entity_level = entity_info.get("level", 0)
                     
@@ -674,10 +695,12 @@ async def generate_intercompany_matching_report():
                             debit = value
                             credit = 0.0
                             total_debits += value
+                            print(f"  [DEBIT] {entity_name} | {account_name} = ${value:,.2f}")
                         else:
                             debit = 0.0
                             credit = value  # negative value
                             total_credits += value
+                            print(f"  [CREDIT] {entity_name} | {account_name} = ${value:,.2f}")
                         
                         entity_account_data.append({
                             "entity": entity_name,
@@ -688,8 +711,22 @@ async def generate_intercompany_matching_report():
                             "level": entity_level
                         })
                     
-                    if total_with_data % 10 == 0:
-                        print(f"  Processed {total_with_data} data points...")
+                    # In validation mode, stop after finding enough
+                    if VALIDATION_MODE and total_with_data >= MAX_NON_NULL_TO_FIND:
+                        print(f"  [VALIDATION] Found {total_with_data} non-null amounts. Stopping.")
+                        break
+                
+                # Progress update every 10 entities in validation mode, 50 otherwise
+                progress_interval = 10 if VALIDATION_MODE else 50
+                if entity_idx % progress_interval == 0:
+                    print(f"  Progress: {entity_idx}/{len(valid_entities)} entities queried, {account_data_count} with data so far...")
+            
+            print(f"  Account {account_name}: Found {account_data_count} entities with data")
+            
+            # In validation mode, stop after first account if we found data
+            if VALIDATION_MODE and total_with_data > 0:
+                print(f"  [VALIDATION] Found {total_with_data} non-null amounts total. Stopping after first account.")
+                break
             
             print()
         

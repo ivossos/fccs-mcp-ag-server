@@ -47,7 +47,12 @@ class ApiTestResult:
     curl_exit_code: int
 
 
-def build_tests(include_execute: bool, tool_name: str, tool_args: Optional[str]) -> List[ApiTest]:
+def build_tests(
+    include_execute: bool,
+    tool_name: str,
+    tool_args: Optional[str],
+    session_id: str = "validation-script"
+) -> List[ApiTest]:
     parsed_args: Optional[Dict[str, Any]] = None
     if tool_args:
         try:
@@ -58,10 +63,22 @@ def build_tests(include_execute: bool, tool_name: str, tool_args: Optional[str])
     execute_body = {
         "tool_name": tool_name,
         "arguments": parsed_args or {},
-        "session_id": "validation-script",
+        "session_id": session_id,
+    }
+
+    execute_rl_body = {
+        **execute_body,
+        "arguments": {**(parsed_args or {}), "user_query": "validation"},
+    }
+
+    tool_call_body = {
+        "tool_name": tool_name,
+        "arguments": parsed_args or {},
+        "session_id": session_id,
     }
 
     return [
+        ApiTest(name="Root", method="GET", path="/"),
         ApiTest(name="Health check", method="GET", path="/health"),
         ApiTest(name="List tools", method="GET", path="/tools"),
         ApiTest(
@@ -72,6 +89,14 @@ def build_tests(include_execute: bool, tool_name: str, tool_args: Optional[str])
             headers={"Content-Type": "application/json"},
         ),
         ApiTest(
+            name="Call tool via /tools/{tool_name}",
+            method="POST",
+            path=f"/tools/{tool_name}",
+            body=tool_call_body,
+            headers={"Content-Type": "application/json"},
+            enabled=include_execute,
+        ),
+        ApiTest(
             name="Execute tool",
             method="POST",
             path="/execute",
@@ -79,6 +104,60 @@ def build_tests(include_execute: bool, tool_name: str, tool_args: Optional[str])
             headers={"Content-Type": "application/json"},
             enabled=include_execute,
         ),
+        ApiTest(
+            name="Execute tool with RL",
+            method="POST",
+            path="/execute/rl",
+            body=execute_rl_body,
+            headers={"Content-Type": "application/json"},
+            enabled=include_execute,
+        ),
+        ApiTest(
+            name="Metrics",
+            method="GET",
+            path=f"/metrics?tool_name={tool_name}",
+        ),
+        ApiTest(
+            name="Executions",
+            method="GET",
+            path=f"/executions?tool_name={tool_name}&limit=5",
+        ),
+        ApiTest(
+            name="Feedback",
+            method="POST",
+            path="/feedback",
+            body={"execution_id": 0, "rating": 5, "feedback": "validation"},
+            headers={"Content-Type": "application/json"},
+        ),
+        ApiTest(name="RL metrics", method="GET", path="/rl/metrics"),
+        ApiTest(
+            name="RL policy for tool",
+            method="GET",
+            path=f"/rl/policy/{tool_name}",
+        ),
+        ApiTest(
+            name="RL recommendations",
+            method="POST",
+            path="/rl/recommendations",
+            body={
+                "query": "validate endpoints",
+                "previous_tool": tool_name,
+                "session_id": session_id,
+                "session_length": 1,
+            },
+            headers={"Content-Type": "application/json"},
+        ),
+        ApiTest(
+            name="RL episodes",
+            method="GET",
+            path=f"/rl/episodes?tool_name={tool_name}&limit=5",
+        ),
+        ApiTest(
+            name="Finalize session",
+            method="POST",
+            path=f"/sessions/{session_id}/finalize?outcome=success",
+        ),
+        ApiTest(name="OpenAPI schema", method="GET", path="/openapi.json"),
     ]
 
 

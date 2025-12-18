@@ -27,13 +27,18 @@ class FCCSConfig(BaseSettings):
 
     # Server
     port: int = Field(8080, alias="PORT")
+    cors_origins: str = Field(
+        "http://localhost:3000,http://localhost:8080",
+        alias="CORS_ORIGINS",
+        description="Comma-separated list of allowed CORS origins. Use '*' only for development."
+    )
 
     # Reinforcement Learning Configuration
     rl_enabled: bool = Field(True, alias="RL_ENABLED")
     rl_exploration_rate: float = Field(0.1, alias="RL_EXPLORATION_RATE")
-    rl_learning_rate: float = Field(0.1, alias="RL_LEARNING_RATE")
-    rl_discount_factor: float = Field(0.9, alias="RL_DISCOUNT_FACTOR")
-    rl_min_samples: int = Field(5, alias="RL_MIN_SAMPLES")  # Minimum samples before using RL
+    rl_learning_rate: float = Field(0.3, alias="RL_LEARNING_RATE")  # Increased for faster learning
+    rl_discount_factor: float = Field(0.95, alias="RL_DISCOUNT_FACTOR")  # Higher future reward valuation
+    rl_min_samples: int = Field(3, alias="RL_MIN_SAMPLES")  # Lower threshold for earlier RL activation
 
     model_config = {
         "env_file": ".env",

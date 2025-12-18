@@ -1,0 +1,186 @@
+================================================================================
+FCCS METADATA VALIDATION LOG
+================================================================================
+Generated: 2025-12-15T18:17:54.525494
+Total Issues Found: 11
+================================================================================
+
+SUMMARY
+  Errors:   11
+  Warnings: 0
+  Info:     0
+
+================================================================================
+
+ERRORS
+--------------------------------------------------------------------------------
+
+[ERROR] 2025-12-15T18:17:43.440293
+Dimension: Years
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: Years
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:44.848631
+Dimension: Period
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: Period
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:46.209813
+Dimension: Scenario
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: Scenario
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:47.580646
+Dimension: View
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: View
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:47.592259
+Dimension: Entity
+Type: DUPLICATE_MEMBER_NAMES
+Message: Found 31 duplicate member names
+Details: Duplicates: 3, 10, 19, 14, 204, 20, 50, 7, 21, 12
+
+
+[ERROR] 2025-12-15T18:17:48.988598
+Dimension: Consolidation
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: Consolidation
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:48.999896
+Dimension: Account
+Type: DUPLICATE_MEMBER_NAMES
+Message: Found 36 duplicate member names
+Details: Duplicates: 80100, FCCS_Inventories, 100100, 20930, FCCS_Cash And Cash Equivalents, FCCS_Total Equity, 80300, 100600, FCCS_Total Liabilities, FCCS_Common Stock
+
+
+[ERROR] 2025-12-15T18:17:50.387121
+Dimension: ICP
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: ICP
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:51.740031
+Dimension: Data Source
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: Data Source
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:53.137718
+Dimension: Movement
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: Movement
+Details: ValueError
+
+
+[ERROR] 2025-12-15T18:17:54.522108
+Dimension: Multi-GAAP
+Type: EXCEPTION
+Message: Exception while validating dimension: Could not retrieve members for dimension: Multi-GAAP
+Details: ValueError
+
+
+================================================================================
+DETAILED ISSUE LIST
+================================================================================
+
+Issue #1
+  Severity: ERROR
+  Dimension: Years
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: Years
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:43.440293
+
+Issue #2
+  Severity: ERROR
+  Dimension: Period
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: Period
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:44.848631
+
+Issue #3
+  Severity: ERROR
+  Dimension: Scenario
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: Scenario
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:46.209813
+
+Issue #4
+  Severity: ERROR
+  Dimension: View
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: View
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:47.580646
+
+Issue #5
+  Severity: ERROR
+  Dimension: Entity
+  Type: DUPLICATE_MEMBER_NAMES
+  Message: Found 31 duplicate member names
+  Details: Duplicates: 3, 10, 19, 14, 204, 20, 50, 7, 21, 12
+  Timestamp: 2025-12-15T18:17:47.592259
+
+Issue #6
+  Severity: ERROR
+  Dimension: Consolidation
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: Consolidation
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:48.988598
+
+Issue #7
+  Severity: ERROR
+  Dimension: Account
+  Type: DUPLICATE_MEMBER_NAMES
+  Message: Found 36 duplicate member names
+  Details: Duplicates: 80100, FCCS_Inventories, 100100, 20930, FCCS_Cash And Cash Equivalents, FCCS_Total Equity, 80300, 100600, FCCS_Total Liabilities, FCCS_Common Stock
+  Timestamp: 2025-12-15T18:17:48.999896
+
+Issue #8
+  Severity: ERROR
+  Dimension: ICP
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: ICP
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:50.387121
+
+Issue #9
+  Severity: ERROR
+  Dimension: Data Source
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: Data Source
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:51.740031
+
+Issue #10
+  Severity: ERROR
+  Dimension: Movement
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: Movement
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:53.137718
+
+Issue #11
+  Severity: ERROR
+  Dimension: Multi-GAAP
+  Type: EXCEPTION
+  Message: Exception while validating dimension: Could not retrieve members for dimension: Multi-GAAP
+  Details: ValueError
+  Timestamp: 2025-12-15T18:17:54.522108
+

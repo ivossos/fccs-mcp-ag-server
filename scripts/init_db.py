@@ -1,11 +1,34 @@
 """Database initialization script for fccs_agent database."""
 
+import re
 import sys
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 
 from fccs_agent.config import FCCSConfig
 from fccs_agent.services.feedback_service import Base, FeedbackService
+
+
+def validate_database_name(name: str) -> bool:
+    """Validate database name to prevent SQL injection.
+
+    PostgreSQL database names must:
+    - Start with a letter or underscore
+    - Contain only letters, digits, and underscores
+    - Be at most 63 characters long
+
+    Args:
+        name: The database name to validate
+
+    Returns:
+        True if the name is valid, False otherwise
+    """
+    if not name or len(name) > 63:
+        return False
+    # Allow only alphanumeric characters, underscores, and hyphens
+    # Must start with a letter or underscore
+    pattern = r'^[a-zA-Z_][a-zA-Z0-9_-]*$'
+    return bool(re.match(pattern, name))
 
 
 def create_postgres_database_if_not_exists(db_url: str) -> bool:
@@ -37,7 +60,16 @@ def create_postgres_database_if_not_exists(db_url: str) -> bool:
         
         base_url = "/".join(parts[:-1])  # Everything except the database name
         database_name = parts[-1].split("?")[0]  # Remove query parameters if any
-        
+
+        # Validate database name to prevent SQL injection
+        if not validate_database_name(database_name):
+            print(f"Error: Invalid database name '{database_name}'")
+            print("Database name must:")
+            print("  - Start with a letter or underscore")
+            print("  - Contain only letters, digits, underscores, and hyphens")
+            print("  - Be at most 63 characters long")
+            return False
+
         # Connect to postgres database to create the target database
         # Keep the psycopg driver for the admin connection
         admin_url = f"{base_url}/postgres"

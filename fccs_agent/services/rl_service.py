@@ -1025,7 +1025,8 @@ class RLService:
         
         # Normalize to [0, 1] range (assuming rewards are in [-10, 20] range)
         # Map to [0, 1] using sigmoid-like function
-        confidence = 1.0 / (1.0 + np.exp(-action_value / 5.0))
+        # Optimized: divide by 3.0 instead of 5.0 for more aggressive confidence scaling
+        confidence = 1.0 / (1.0 + np.exp(-action_value / 3.0))
         return float(confidence)
 
     def log_episode(
