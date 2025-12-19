@@ -17,7 +17,7 @@ from fccs_agent.services.rl_service import (
 )
 
 # Import all tool modules
-from fccs_agent.tools import application, jobs, dimensions, journals, data, reports, consolidation, memo
+from fccs_agent.tools import application, jobs, dimensions, journals, data, reports, consolidation, memo, feedback
 
 # Global state
 _fccs_client: Optional[FccsClient] = None
@@ -163,6 +163,9 @@ TOOL_HANDLERS = {
     # Memo
     "generate_system_pitch": memo.generate_system_pitch,
     "generate_investment_memo": memo.generate_investment_memo,
+    # Feedback
+    "submit_feedback": feedback.submit_feedback,
+    "get_recent_executions": feedback.get_recent_executions,
 }
 
 # Collect all tool definitions
@@ -174,7 +177,8 @@ ALL_TOOL_DEFINITIONS = (
     data.TOOL_DEFINITIONS +
     reports.TOOL_DEFINITIONS +
     consolidation.TOOL_DEFINITIONS +
-    memo.TOOL_DEFINITIONS
+    memo.TOOL_DEFINITIONS +
+    feedback.TOOL_DEFINITIONS
 )
 
 
@@ -245,8 +249,13 @@ async def execute_tool(
 
         # Track execution end (non-blocking)
         # This will also trigger RL policy update via feedback_service callback
+        execution_id = None
         try:
             execution_id = after_tool_callback(session_id, tool_name, arguments, result)
+            
+            # Include execution_id in result for easy feedback submission
+            if execution_id and execution_id > 0:
+                result["execution_id"] = execution_id
 
             # Update RL policy with context if available
             if rl_service and context_hash and execution_id:
@@ -421,5 +430,9 @@ Available tools:
 - get_journals, get_journal_details, perform_journal_action: Journal management
 - export_data_slice, smart_retrieve: Query financial data
 - generate_report, get_report_job_status: Generate reports
+- submit_feedback, get_recent_executions: Provide feedback to improve RL learning
 - And more consolidation and data management tools
+
+After executing a tool, you can use submit_feedback with the execution_id from the result
+to rate the execution (1-5 stars) and help the system learn.
 """

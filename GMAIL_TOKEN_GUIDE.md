@@ -167,3 +167,4 @@ After setting up the credentials and token, restart Cursor for the Gmail MCP ser
 
 
 
+
