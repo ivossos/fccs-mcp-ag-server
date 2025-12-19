@@ -252,7 +252,10 @@ The changes made will:
 ## Next Steps
 
 1. **Restart your application** to apply config changes
-2. **(Optional) Run bootstrap script** for immediate boost
+2. **(Optional) Run bootstrap script** for immediate boost:
+   ```bash
+   python boost_rl_confidence.py
+   ```
 3. **Monitor dashboard** - watch confidence climb
 4. **Provide feedback** - rate tool executions to help it learn
 

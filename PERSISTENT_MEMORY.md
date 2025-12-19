@@ -235,6 +235,32 @@ When deployed to Cloud Run:
 
 All persistent memory is **automatically managed** - you don't need to manually interact with it unless you want to query metrics or clear cache.
 
+## 5. Business Rules & Defaults (Documentation Memory)
+
+### Purpose
+- **Business logic defaults** for FCCS operations
+- **Convention documentation** for consistent behavior
+- **System preferences** that guide tool usage
+
+### Entity Member Default
+
+**Rule:** When an entity member is omitted or not provided, use **"FCCS_Total Geography"** as the default.
+
+**Examples:**
+- `smart_retrieve(account="FCCS_Net Income")` → Uses `entity="FCCS_Total Geography"` by default
+- `export_data_slice()` without entity → Should default to `"FCCS_Total Geography"`
+- Any tool that accepts an `entity` parameter should default to `"FCCS_Total Geography"` if not specified
+
+**Implementation:**
+- Already implemented in `smart_retrieve()` function (see `fccs_agent/tools/data.py`)
+- Should be applied consistently across all tools that accept entity parameters
+
+**Rationale:**
+- "FCCS_Total Geography" represents the consolidated/aggregated view across all entities
+- Most common use case for financial reporting and analysis
+- Provides meaningful default for high-level queries
+
+
 
 
 
