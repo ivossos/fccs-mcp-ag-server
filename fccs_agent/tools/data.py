@@ -73,6 +73,46 @@ async def smart_retrieve(
     return {"status": "success", "data": result}
 
 
+async def smart_retrieve_with_movement(
+    account: str,
+    movement: str,
+    entity: str = "FCCS_Total Geography",
+    period: str = "Jan",
+    years: str = "FY24",
+    scenario: str = "Actual"
+) -> dict[str, Any]:
+    """Smart data retrieval with configurable Movement dimension / Recuperacao inteligente com dimensao Movement customizavel.
+
+    Args:
+        account: The Account member (e.g., 'FCCS_Net Income').
+        movement: The Movement member (e.g., 'FCCS_Mvmts_Subtotal').
+        entity: The Entity member (default: 'FCCS_Total Geography').
+        period: The Period member (default: 'Jan').
+        years: The Years member (default: 'FY24').
+        scenario: The Scenario member (default: 'Actual').
+
+    Returns:
+        dict: The retrieved data for the specified dimensions.
+    """
+    # Build grid definition with hardcoded defaults for 14 dimensions, except Movement
+    grid_definition = {
+        "suppressMissingBlocks": True,
+        "pov": {
+            "members": [
+                [years], [scenario], ["FCCS_YTD"], ["FCCS_Entity Total"],
+                ["FCCS_Intercompany Top"], ["FCCS_Total Data Source"],
+                [movement], [entity], ["Entity Currency"],
+                ["Total Custom 3"], ["Total Region"], ["Total Venturi Entity"],
+                ["Total Custom 4"]
+            ]
+        },
+        "columns": [{"members": [[period]]}],
+        "rows": [{"members": [[account]]}]
+    }
+    result = await _client.export_data_slice(_app_name, "Consol", grid_definition)
+    return {"status": "success", "data": result}
+
+
 async def copy_data(
     from_scenario: Optional[str] = None,
     to_scenario: Optional[str] = None,
@@ -186,6 +226,40 @@ TOOL_DEFINITIONS = [
                 },
             },
             "required": ["account"],
+        },
+    },
+    {
+        "name": "smart_retrieve_with_movement",
+        "description": "Smart data retrieval with configurable Movement dimension / Recuperacao inteligente com dimensao Movement customizavel",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string",
+                    "description": "The Account member (e.g., 'FCCS_Net Income')",
+                },
+                "movement": {
+                    "type": "string",
+                    "description": "The Movement member (e.g., 'FCCS_Mvmts_Subtotal')",
+                },
+                "entity": {
+                    "type": "string",
+                    "description": "The Entity member (default: 'FCCS_Total Geography')",
+                },
+                "period": {
+                    "type": "string",
+                    "description": "The Period member (default: 'Jan')",
+                },
+                "years": {
+                    "type": "string",
+                    "description": "The Years member (default: 'FY24')",
+                },
+                "scenario": {
+                    "type": "string",
+                    "description": "The Scenario member (default: 'Actual')",
+                },
+            },
+            "required": ["account", "movement"],
         },
     },
     {
