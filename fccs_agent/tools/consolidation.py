@@ -110,6 +110,41 @@ async def deploy_form_template(
     return {"status": "success", "data": result}
 
 
+async def generate_consolidation_process_report(
+    entity: str = "FCCS_Total Geography",
+    account: str = "FCCS_Net Income",
+    period: str = "Jan",
+    year: str = "FY24",
+    scenario: str = "Actual"
+) -> dict[str, Any]:
+    """Generate a Consolidation Process Overview Report / Gerar relatorio de processo de consolidacao.
+
+    Args:
+        entity: The Entity member.
+        account: The Account member.
+        period: The Period member.
+        year: The Year member.
+        scenario: The Scenario member.
+
+    Returns:
+        dict: Report generation summary and path.
+    """
+    from scripts.consolidation_process_report import get_consolidation_data, generate_html_report
+    
+    data = await get_consolidation_data(entity, account, period, year, scenario)
+    report_path = generate_html_report(entity, account, period, year, scenario, data)
+    
+    return {
+        "status": "success",
+        "data": {
+            "report_path": report_path,
+            "entity": entity,
+            "account": account,
+            "message": f"Consolidation process report generated for {entity}"
+        }
+    }
+
+
 TOOL_DEFINITIONS = [
     {
         "name": "export_consolidation_rulesets",
@@ -192,6 +227,35 @@ TOOL_DEFINITIONS = [
                 },
             },
             "required": ["template_name"],
+        },
+    },
+    {
+        "name": "generate_consolidation_process_report",
+        "description": "Generate a Consolidation Process Overview Report showing data flow from Local GAAP to Consolidated / Gerar relatorio de processo de consolidacao",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "entity": {
+                    "type": "string",
+                    "description": "The Entity member (default: 'FCCS_Total Geography')",
+                },
+                "account": {
+                    "type": "string",
+                    "description": "The Account member (default: 'FCCS_Net Income')",
+                },
+                "period": {
+                    "type": "string",
+                    "description": "The Period member (default: 'Jan')",
+                },
+                "year": {
+                    "type": "string",
+                    "description": "The Year member (default: 'FY24')",
+                },
+                "scenario": {
+                    "type": "string",
+                    "description": "The Scenario member (default: 'Actual')",
+                },
+            },
         },
     },
 ]

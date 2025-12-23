@@ -122,32 +122,32 @@ async def get_cta_by_entity_fy25():
                         scenario="Actual"
                     )
                 
-                if result.get("status") == "success":
-                    data = result.get("data", {})
-                    rows = data.get("rows", [])
-                    
-                    value = None
-                    if rows and rows[0].get("data"):
-                        value = rows[0]["data"][0]
-                    
-                    if value is not None:
-                        try:
-                            value_float = float(value)
-                            cta_results.append({
-                                "entity": entity,
-                                "cta": value_float
-                            })
-                            print(f"  [OK] {entity:40s}: ${value_float:>15,.2f}")
-                        except (ValueError, TypeError):
-                            print(f"  [ERR] {entity:40s}: Invalid value ({value})")
+                    if result.get("status") == "success":
+                        data = result.get("data", {})
+                        rows = data.get("rows", [])
+                        
+                        value = None
+                        if rows and rows[0].get("data"):
+                            value = rows[0]["data"][0]
+                        
+                        if value is not None:
+                            try:
+                                value_float = float(value)
+                                cta_results.append({
+                                    "entity": entity,
+                                    "cta": value_float
+                                })
+                                print(f"  [OK] {entity:40s}: ${value_float:>15,.2f}")
+                            except (ValueError, TypeError):
+                                print(f"  [ERR] {entity:40s}: Invalid value ({value})")
+                        else:
+                            print(f"  [-] {entity:40s}: No data")
                     else:
-                        print(f"  [-] {entity:40s}: No data")
-                else:
-                    error = result.get("error", "Unknown error")
-                    print(f"  [ERR] {entity:40s}: Error - {error}")
-                    
-            except Exception as e:
-                print(f"  [ERR] {entity:40s}: Exception - {str(e)}")
+                        error = result.get("error", "Unknown error")
+                        print(f"  [ERR] {entity:40s}: Error - {error}")
+                        
+                except Exception as e:
+                    print(f"  [ERR] {entity:40s}: Exception - {str(e)}")
         
         print()
         print("=" * 80)

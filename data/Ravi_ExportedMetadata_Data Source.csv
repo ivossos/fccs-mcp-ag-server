@@ -1,0 +1,12 @@
+﻿Data Source, Parent, Alias: Default, Valid For Consolidations, Data Storage, Two Pass Calculation, Description, Formula, Formula Description, UDA, Smart List, Data Type, Hierarchy Type, Enable for Dynamic Children, Number of Possible Dynamic Children, Access Granted to Member Creator, Allow Upper Level Entity Input, Process Management Enabled, UUID, Data Id, Old Name, Old Unique Name, Plan Type (Consol), Aggregation (Consol), Data Storage (Consol), Formula (Consol), Solve Order (Consol), Formula Description (Consol), Source Data Type, Source Currency Type, Operation
+FCCS_Total Data Source,Data Source,,,dynamic calc,,,,,,,,,,,,,,262890da-69ea-4370-9792-2457eff05d4e,4337306335596296,FCCS_Total Data Source,<none>,,,,,,,,,reposition only
+FCCS_No Data Source,FCCS_Total Data Source,,,store,,,,,,,,,,,,,,b3c60bf6-e0fc-492b-9ed5-683b4c10b92a,2827581058010298,FCCS_No Data Source,<none>,,,,,,,,,reposition only
+FCCS_Total Eliminations,FCCS_Total Data Source,,,dynamic calc,,,,,,,,,,,,,,5938e497-4b53-4672-8dd6-7c90b61f57de,3664297263318839,FCCS_Total Eliminations,<none>,,,,,,,,,reposition only
+FCCS_Intercompany Eliminations,FCCS_Total Eliminations,,,store,,,,,,,,,,,,,,30cf4d02-138c-4aac-8f64-57a82e416fe5,1329814342156435,FCCS_Intercompany Eliminations,<none>,,,,,,,,,reposition only
+FCCS_TotalInputAndAdjusted,FCCS_Total Data Source,,,dynamic calc,,,,,,,,,,,,,,c27d2674-d601-4e78-a5f1-06b3f7ccc145,939462980157659,FCCS_TotalInputAndAdjusted,<none>,,,,,,,,,reposition only
+FCCS_Data Input,FCCS_TotalInputAndAdjusted,,,store,,,,,,,,,,,,,,91ab691d-5a86-425e-9cc3-11d62c9fbcf7,1210948579706506,FCCS_Data Input,<none>,,,,,,,,,reposition only
+FCCS_Managed Data,FCCS_TotalInputAndAdjusted,,,store,,,,,,,,,,,,,,af5a5f81-47d5-4c30-81ba-2543624ae88c,1470956400493432,FCCS_Managed Data,<none>,,,,,,,,,reposition only
+FCCS_Supplemental Data,FCCS_TotalInputAndAdjusted,,,store,,,,,,,,,,,,,,374fba11-85d7-4f95-9b52-6ed6ff40b78d,758326187345673,FCCS_Supplemental Data,<none>,,,,,,,,,reposition only
+FCCS_Journal Input,FCCS_TotalInputAndAdjusted,,,store,,,,,,,,,,,,,,6b8683f0-e78d-4928-93d3-07f4cd96df94,2640112507636857,FCCS_Journal Input,<none>,,,,,,,,,reposition only
+FCCS_SystemTypes,FCCS_Total Data Source,,,label only,,,,,,,,,,,,,,43f80a17-8877-45b8-acd1-0e8c284e4171,3531970913715525,FCCS_SystemTypes,<none>,,,,,,,,,reposition only
+FCCS_Driver Source,FCCS_SystemTypes,,,never share,,,,,,,,,,,,,,b6ed5b6a-b3d4-4ec2-b57a-72b93d8eb940,945028351150866,FCCS_Driver Source,<none>,,,,,,,,,reposition only

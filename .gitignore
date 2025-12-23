@@ -71,6 +71,7 @@ logs/
 # Reports
 *.pdf
 *.html
+archive/
 FCCS_Analysis_Report_*.pdf
 FCCS_Analysis_Report_*.html
 
@@ -118,6 +119,8 @@ gcloud-config/
 # Test files
 test.pdf
 test_*.py
+
+
 
 
 

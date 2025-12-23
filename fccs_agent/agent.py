@@ -11,13 +11,17 @@ from fccs_agent.services.feedback_service import (
     after_tool_callback,
     get_feedback_service
 )
+from fccs_agent.services.cache_service import (
+    init_cache_service,
+    get_cache_service
+)
 from fccs_agent.services.rl_service import (
     init_rl_service,
     get_rl_service
 )
 
 # Import all tool modules
-from fccs_agent.tools import application, jobs, dimensions, journals, data, reports, consolidation, memo, feedback
+from fccs_agent.tools import application, jobs, dimensions, journals, data, reports, consolidation, memo, feedback, local_data
 
 # Global state
 _fccs_client: Optional[FccsClient] = None
@@ -73,6 +77,13 @@ async def initialize_agent(cfg: Optional[FCCSConfig] = None) -> str:
         from fccs_agent.services.feedback_service import _feedback_service
         import fccs_agent.services.feedback_service as feedback_module
         feedback_module._feedback_service = None
+
+    # Initialize cache service
+    try:
+        init_cache_service(use_config.database_url)
+        print("Cache service initialized", file=sys.stderr)
+    except Exception as e:
+        print(f"Warning: Could not initialize cache service: {e}", file=sys.stderr)
 
     # Initialize RL service (optional - only if feedback service is available and RL enabled)
     if use_config.rl_enabled and feedback_service:
@@ -161,12 +172,15 @@ TOOL_HANDLERS = {
     "generate_intercompany_matching_report": consolidation.generate_intercompany_matching_report,
     "import_supplementation_data": consolidation.import_supplementation_data,
     "deploy_form_template": consolidation.deploy_form_template,
+    "generate_consolidation_process_report": consolidation.generate_consolidation_process_report,
     # Memo
     "generate_system_pitch": memo.generate_system_pitch,
     "generate_investment_memo": memo.generate_investment_memo,
     # Feedback
     "submit_feedback": feedback.submit_feedback,
     "get_recent_executions": feedback.get_recent_executions,
+    # Local Data
+    "query_local_metadata": local_data.query_local_metadata,
 }
 
 # Collect all tool definitions
@@ -179,7 +193,8 @@ ALL_TOOL_DEFINITIONS = (
     reports.TOOL_DEFINITIONS +
     consolidation.TOOL_DEFINITIONS +
     memo.TOOL_DEFINITIONS +
-    feedback.TOOL_DEFINITIONS
+    feedback.TOOL_DEFINITIONS +
+    local_data.TOOL_DEFINITIONS
 )
 
 

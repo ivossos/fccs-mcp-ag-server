@@ -3,6 +3,7 @@
 from typing import Any, Optional
 
 from fccs_agent.client.fccs_client import FccsClient
+from fccs_agent.services.cache_service import get_cache_service
 
 _client: FccsClient = None
 _app_name: str = None
@@ -37,8 +38,20 @@ async def get_members(dimension_name: str) -> dict[str, Any]:
     Returns:
         dict: List of dimension members.
     """
+    cache = get_cache_service()
+    cache_key = f"members:{dimension_name}"
+    
+    if cache:
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return {"status": "success", "data": cached_data, "source": "cache"}
+
     members = await _client.get_members(_app_name, dimension_name)
-    return {"status": "success", "data": members}
+    
+    if cache and members:
+        cache.set(cache_key, members, ttl_seconds=86400)  # Cache for 24 hours
+        
+    return {"status": "success", "data": members, "source": "fccs"}
 
 
 async def get_dimension_hierarchy(
@@ -58,10 +71,22 @@ async def get_dimension_hierarchy(
     Returns:
         dict: Hierarchy tree structure.
     """
+    cache = get_cache_service()
+    cache_key = f"hierarchy:{dimension_name}:{member_name}:{depth}:{include_metadata}"
+    
+    if cache:
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return {"status": "success", "data": cached_data, "source": "cache"}
+
     hierarchy = await _client.get_dimension_hierarchy(
         _app_name, dimension_name, member_name, depth, include_metadata
     )
-    return {"status": "success", "data": hierarchy}
+    
+    if cache and hierarchy:
+        cache.set(cache_key, hierarchy, ttl_seconds=3600)  # Cache for 1 hour
+        
+    return {"status": "success", "data": hierarchy, "source": "fccs"}
 
 
 TOOL_DEFINITIONS = [
