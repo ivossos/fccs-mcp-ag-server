@@ -99,7 +99,7 @@ async def generate_system_pitch() -> dict[str, Any]:
             ('Consolidation', 'Business rules, metadata validation, intercompany matching'),
             ('Report Generation', 'Multi-format: PDF, HTML, XLSX, CSV'),
             ('Bilingual', 'English & Portuguese support'),
-            ('Learning System', 'PostgreSQL feedback tracking & metrics')
+            ('Learning System', 'SQLite feedback tracking & metrics')
         ]
 
         for cap_title, cap_desc in capabilities:

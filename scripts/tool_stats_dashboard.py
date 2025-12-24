@@ -81,8 +81,7 @@ def run_dashboard():
         st.info("""
         Please check:
         1. Your `.env` file has correct `DATABASE_URL`
-        2. PostgreSQL database is running
-        3. Database has been initialized: `python scripts/init_db.py`
+        2. Database has been initialized: `python scripts/init_db.py`
         """)
         st.stop()
     
@@ -606,7 +605,7 @@ def run_dashboard():
     
     # Footer
     st.markdown("---")
-    st.markdown("**Tool Execution Statistics Dashboard** | Data from PostgreSQL Database")
+    st.markdown("**Tool Execution Statistics Dashboard** | Data from SQLite Database")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 This project has **multiple layers of persistent memory** for different purposes:
 
-## 1. PostgreSQL Database (Primary Persistent Storage)
+## 1. SQLite Database (Primary Persistent Storage)
 
 ### Purpose
 - **Tool execution tracking** for reinforcement learning
@@ -39,8 +39,11 @@ Aggregated metrics per tool:
 ### Configuration
 Set via `DATABASE_URL` environment variable:
 ```bash
-DATABASE_URL=postgresql+psycopg://postgres:password@localhost:5432/fccs_agent
+DATABASE_URL=sqlite:///./data/fccs_agent.db
 ```
+
+### Database Location
+The SQLite database file is stored at `./data/fccs_agent.db` by default.
 
 ### Initialization
 ```bash
@@ -119,7 +122,7 @@ FCCS_PASSWORD=your_password
 FCCS_MOCK_MODE=false
 
 # Database
-DATABASE_URL=postgresql+psycopg://postgres:password@localhost:5432/fccs_agent
+DATABASE_URL=sqlite:///./data/fccs_agent.db
 
 # Google API (optional)
 GOOGLE_API_KEY=your_key
@@ -144,7 +147,7 @@ Web Server (FastAPI)
 │  │ 1. Check Local Cache          │  │ → .cache/members/*.json
 │  │ 2. If missing, call FCCS API  │  │ → Save to cache
 │  │ 3. Execute tool               │  │
-│  │ 4. Log to Database           │  │ → PostgreSQL
+│  │ 4. Log to Database           │  │ → SQLite
 │  └───────────────────────────────┘  │
 └─────────────────────────────────────┘
     ↓
@@ -207,10 +210,11 @@ python scripts/show_cache_status.py
 
 When deployed to Cloud Run:
 
-1. **Database**: Use Cloud SQL or external PostgreSQL
+1. **Database**: SQLite file stored in a persistent volume
    ```bash
-   DATABASE_URL=postgresql+psycopg://user:pass@cloud-sql-instance/db
+   DATABASE_URL=sqlite:///./data/fccs_agent.db
    ```
+   Note: For Cloud Run, consider mounting a Cloud Storage bucket for persistence.
 
 2. **Cache**: Ephemeral (resets on restart)
    - Consider using Cloud Storage for persistent cache
@@ -227,7 +231,7 @@ When deployed to Cloud Run:
 
 | Storage Type | Purpose | Persistence | Location |
 |-------------|---------|-------------|----------|
-| PostgreSQL | Tool execution history, metrics, feedback | Permanent | Database server |
+| SQLite | Tool execution history, metrics, feedback | Permanent | ./data/fccs_agent.db |
 | Local Cache | Dimension members, metadata | File system | `.cache/` directory |
 | CSV Files | Fallback metadata source | File system | Project root |
 | .env File | Configuration | File system | Project root |

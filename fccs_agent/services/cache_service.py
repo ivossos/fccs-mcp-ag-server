@@ -32,7 +32,7 @@ class MetadataCache(Base):
     last_updated = Column(DateTime, default=datetime.utcnow)
 
 class CacheService:
-    """Service for managing local cache in SQLite/PostgreSQL."""
+    """Service for managing local cache in SQLite."""
 
     def __init__(self, db_url: str):
         self.engine = create_engine(db_url)

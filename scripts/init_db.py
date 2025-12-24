@@ -1,118 +1,54 @@
-"""Database initialization script for fccs_agent database."""
+"""Database initialization script for fccs_agent database (SQLite)."""
 
-import re
+import os
 import sys
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import OperationalError
+from pathlib import Path
+from sqlalchemy import create_engine
 
 from fccs_agent.config import FCCSConfig
 from fccs_agent.services.feedback_service import Base, FeedbackService
 
 
-def validate_database_name(name: str) -> bool:
-    """Validate database name to prevent SQL injection.
-
-    PostgreSQL database names must:
-    - Start with a letter or underscore
-    - Contain only letters, digits, and underscores
-    - Be at most 63 characters long
+def ensure_sqlite_directory(db_url: str) -> bool:
+    """Ensure the directory for SQLite database file exists.
 
     Args:
-        name: The database name to validate
+        db_url: SQLite database URL (e.g., sqlite:///./data/fccs_agent.db)
 
     Returns:
-        True if the name is valid, False otherwise
-    """
-    if not name or len(name) > 63:
-        return False
-    # Allow only alphanumeric characters, underscores, and hyphens
-    # Must start with a letter or underscore
-    pattern = r'^[a-zA-Z_][a-zA-Z0-9_-]*$'
-    return bool(re.match(pattern, name))
-
-
-def create_postgres_database_if_not_exists(db_url: str) -> bool:
-    """Create the PostgreSQL database if it doesn't exist.
-    
-    Args:
-        db_url: Full database URL including database name
-        
-    Returns:
-        True if database was created or already exists, False on error
+        True if directory exists or was created, False on error
     """
     try:
-        # Ensure we're using psycopg driver (psycopg3)
-        if db_url.startswith("postgresql+psycopg://"):
-            url_with_driver = db_url
-        elif db_url.startswith("postgresql://"):
-            # Convert to use psycopg3
-            url_with_driver = db_url.replace("postgresql://", "postgresql+psycopg://")
+        # Extract file path from SQLite URL
+        # sqlite:///./data/fccs_agent.db -> ./data/fccs_agent.db
+        if db_url.startswith("sqlite:///"):
+            file_path = db_url[10:]  # Remove "sqlite:///"
+        elif db_url.startswith("sqlite://"):
+            file_path = db_url[9:]   # Remove "sqlite://"
         else:
-            print(f"Error: Unsupported database URL format: {db_url}")
-            print("Expected format: postgresql+psycopg://user:password@host:port/database")
-            return False
-        
-        # Split to get base URL and database name
-        parts = url_with_driver.split("/")
-        if len(parts) < 4:
-            print(f"Error: Invalid database URL format: {db_url}")
-            return False
-        
-        base_url = "/".join(parts[:-1])  # Everything except the database name
-        database_name = parts[-1].split("?")[0]  # Remove query parameters if any
-
-        # Validate database name to prevent SQL injection
-        if not validate_database_name(database_name):
-            print(f"Error: Invalid database name '{database_name}'")
-            print("Database name must:")
-            print("  - Start with a letter or underscore")
-            print("  - Contain only letters, digits, underscores, and hyphens")
-            print("  - Be at most 63 characters long")
+            print(f"Error: Not a SQLite URL: {db_url}")
             return False
 
-        # Connect to postgres database to create the target database
-        # Keep the psycopg driver for the admin connection
-        admin_url = f"{base_url}/postgres"
-        print(f"Connecting to PostgreSQL server to create database '{database_name}'...")
-        
-        admin_engine = create_engine(admin_url, isolation_level="AUTOCOMMIT")
-        
-        with admin_engine.connect() as conn:
-            # Check if database exists
-            result = conn.execute(
-                text("SELECT 1 FROM pg_database WHERE datname = :dbname"),
-                {"dbname": database_name}
-            )
-            exists = result.fetchone() is not None
-            
-            if exists:
-                print(f"Database '{database_name}' already exists.")
-            else:
-                # Create the database
-                conn.execute(text(f'CREATE DATABASE "{database_name}"'))
-                print(f"Database '{database_name}' created successfully.")
-        
-        admin_engine.dispose()
+        # Get directory path
+        dir_path = Path(file_path).parent
+
+        if dir_path and str(dir_path) != ".":
+            os.makedirs(dir_path, exist_ok=True)
+            print(f"Ensured directory exists: {dir_path}")
+
         return True
-        
-    except OperationalError as e:
-        print(f"Error connecting to PostgreSQL: {e}")
-        print("\nPlease ensure:")
-        print("  1. PostgreSQL is running")
-        print("  2. The connection credentials are correct")
-        print("  3. The user has permission to create databases")
-        return False
+
     except Exception as e:
-        print(f"Error creating database: {e}")
+        print(f"Error creating directory: {e}")
         return False
 
 
 def init_schema(db_url: str) -> bool:
     """Initialize the database schema (create tables).
-    
+
     Args:
-        db_url: Full database URL including database name
-        
+        db_url: Full database URL
+
     Returns:
         True if schema was initialized successfully, False on error
     """
@@ -132,66 +68,41 @@ def init_schema(db_url: str) -> bool:
 def main():
     """Main function to initialize the database."""
     print("=" * 60)
-    print("FCCS Agent Database Initialization")
+    print("FCCS Agent Database Initialization (SQLite)")
     print("=" * 60)
     print()
-    
+
     # Load configuration
     try:
         config = FCCSConfig()
         db_url = config.database_url
-        # Mask password in display
-        if "@" in db_url:
-            display_url = db_url.split("@")[1]
-        else:
-            display_url = "***"
-        print(f"Database URL: {display_url}")
+        print(f"Database URL: {db_url}")
     except Exception as e:
         print(f"Error loading configuration: {e}")
         print("\nPlease ensure you have a .env file or set DATABASE_URL environment variable.")
         sys.exit(1)
-    
-    # Check if SQLite is being used
+
+    # Ensure SQLite directory exists
     if db_url.startswith("sqlite://"):
-        print("\n" + "!" * 60)
-        print("WARNING: SQLite database detected!")
-        print("!" * 60)
-        print("\nThis script is designed for PostgreSQL database setup.")
-        print(f"Current DATABASE_URL: {db_url}")
-        print("\nTo use PostgreSQL, update your .env file or DATABASE_URL environment variable:")
-        print("  DATABASE_URL=postgresql+psycopg://postgres:password@localhost:5432/fccs_agent")
-        print("\nFor SQLite, the database file will be created automatically when the")
-        print("application starts. No initialization script is needed.")
-        print("\nIf you want to proceed with SQLite schema initialization anyway, it will")
-        print("be created automatically when FeedbackService initializes.")
-        response = input("\nDo you want to continue with SQLite? (yes/no): ").strip().lower()
-        if response not in ['yes', 'y']:
-            print("Exiting. Please update DATABASE_URL to use PostgreSQL.")
+        print("\nStep 1: Ensuring database directory exists...")
+        if not ensure_sqlite_directory(db_url):
             sys.exit(1)
-        # For SQLite, just initialize schema (database file will be created automatically)
-        print("\nInitializing SQLite database schema...")
-        if not init_schema(db_url):
-            sys.exit(1)
-        print("\n" + "=" * 60)
-        print("SQLite database initialization completed!")
-        print("=" * 60)
-        return
-    
-    # Step 1: Create PostgreSQL database if it doesn't exist
-    print("\nStep 1: Checking PostgreSQL database existence...")
-    if not create_postgres_database_if_not_exists(db_url):
-        sys.exit(1)
-    
-    # Step 2: Initialize schema
+
+    # Initialize schema
     print("\nStep 2: Initializing database schema...")
     if not init_schema(db_url):
         sys.exit(1)
-    
+
     print("\n" + "=" * 60)
-    print("PostgreSQL database initialization completed successfully!")
+    print("Database initialization completed successfully!")
     print("=" * 60)
+
+    # Print database location for SQLite
+    if db_url.startswith("sqlite:///"):
+        file_path = db_url[10:]
+        abs_path = Path(file_path).resolve()
+        print(f"\nSQLite database location: {abs_path}")
 
 
 if __name__ == "__main__":
     main()
-

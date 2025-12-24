@@ -15,9 +15,9 @@ class FCCSConfig(BaseSettings):
     fccs_api_version: str = Field("v3", alias="FCCS_API_VERSION")
     fccs_mock_mode: bool = Field(False, alias="FCCS_MOCK_MODE")
 
-    # Database (PostgreSQL for sessions + feedback)
+    # Database (SQLite for sessions + feedback)
     database_url: str = Field(
-        "postgresql+psycopg://postgres:password@localhost:5432/fccs_agent",
+        "sqlite:///./data/fccs_agent.db",
         alias="DATABASE_URL"
     )
 

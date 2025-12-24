@@ -25,7 +25,7 @@ pip install -e .
 # 4. Create .env file (minimum config)
 @"
 FCCS_MOCK_MODE=true
-DATABASE_URL=sqlite:///./fccs_agent.db
+DATABASE_URL=sqlite:///./data/fccs_agent.db
 PORT=8080
 "@ | Out-File -FilePath .env -Encoding utf8
 
@@ -66,7 +66,7 @@ netstat -ano | findstr :8080
 ### Minimal .env (Development)
 ```env
 FCCS_MOCK_MODE=true
-DATABASE_URL=sqlite:///./fccs_agent.db
+DATABASE_URL=sqlite:///./data/fccs_agent.db
 PORT=8080
 ```
 
@@ -75,7 +75,7 @@ PORT=8080
 FCCS_URL=https://your-instance.epm...
 FCCS_USERNAME=your_username
 FCCS_PASSWORD=your_password
-DATABASE_URL=postgresql+psycopg://postgres:pass@localhost:5432/fccs_agent
+DATABASE_URL=sqlite:///./data/fccs_agent.db
 ```
 
 ## ✅ Verification

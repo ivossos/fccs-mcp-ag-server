@@ -14,3 +14,4 @@ for entity, curr in non_usd:
     print(f"  {entity}: {curr}")
 
 
+

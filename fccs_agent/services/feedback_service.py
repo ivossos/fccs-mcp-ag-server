@@ -1,4 +1,4 @@
-"""Feedback Service - PostgreSQL-based tracking for reinforcement learning."""
+"""Feedback Service - SQLite-based tracking for reinforcement learning."""
 
 import time
 from datetime import datetime
