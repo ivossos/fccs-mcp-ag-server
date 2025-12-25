@@ -158,6 +158,7 @@ TOOL_HANDLERS = {
     # Data
     "export_data_slice": data.export_data_slice,
     "smart_retrieve": data.smart_retrieve,
+    "smart_retrieve_consolidation_breakdown": data.smart_retrieve_consolidation_breakdown,
     "smart_retrieve_with_movement": data.smart_retrieve_with_movement,
     "copy_data": data.copy_data,
     "clear_data": data.clear_data,
@@ -444,7 +445,7 @@ Available tools:
 - run_business_rule, run_data_rule: Execute rules
 - get_dimensions, get_members, get_dimension_hierarchy: Explore dimensions
 - get_journals, get_journal_details, perform_journal_action: Journal management
-- export_data_slice, smart_retrieve, smart_retrieve_with_movement: Query financial data
+- export_data_slice, smart_retrieve, smart_retrieve_consolidation_breakdown, smart_retrieve_with_movement: Query financial data
 - generate_report, get_report_job_status: Generate reports
 - submit_feedback, get_recent_executions: Provide feedback to improve RL learning
 - And more consolidation and data management tools

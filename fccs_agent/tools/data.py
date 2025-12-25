@@ -40,7 +40,8 @@ async def smart_retrieve(
     entity: str = "FCCS_Total Geography",
     period: str = "Jan",
     years: str = "FY24",
-    scenario: str = "Actual"
+    scenario: str = "Actual",
+    consolidation: str = "FCCS_Entity Total"
 ) -> dict[str, Any]:
     """Smart data retrieval with automatic 14-dimension handling / Recuperacao inteligente de dados.
 
@@ -50,6 +51,9 @@ async def smart_retrieve(
         period: The Period member (default: 'Jan').
         years: The Years member (default: 'FY24').
         scenario: The Scenario member (default: 'Actual').
+        consolidation: The Consolidation member (default: 'FCCS_Entity Total').
+            Valid values: 'FCCS_Entity Input', 'FCCS_Entity Consolidation', 
+            'FCCS_Entity Total', 'FCCS_Proportion', 'FCCS_Elimination', 'FCCS_Contribution'.
 
     Returns:
         dict: The retrieved data for the specified dimensions.
@@ -59,7 +63,7 @@ async def smart_retrieve(
         "suppressMissingBlocks": True,
         "pov": {
             "members": [
-                [years], [scenario], ["FCCS_YTD"], ["FCCS_Entity Total"],
+                [years], [scenario], ["FCCS_YTD"], [consolidation],
                 ["FCCS_Intercompany Top"], ["FCCS_Total Data Source"],
                 ["FCCS_Mvmts_Total"], [entity], ["Entity Currency"],
                 ["Total Custom 3"], ["Total Region"], ["Total Venturi Entity"],
@@ -73,13 +77,99 @@ async def smart_retrieve(
     return {"status": "success", "data": result}
 
 
+async def smart_retrieve_consolidation_breakdown(
+    account: str,
+    entity: str = "FCCS_Total Geography",
+    period: str = "Jan",
+    years: str = "FY24",
+    scenario: str = "Actual"
+) -> dict[str, Any]:
+    """Retrieve all Consolidation dimension members for an entity / Recuperar todos os membros da dimensao Consolidation.
+
+    This function retrieves FCCS_Entity Input, FCCS_Entity Consolidation, FCCS_Entity Total,
+    FCCS_Proportion, FCCS_Elimination, and FCCS_Contribution for a given entity.
+
+    Args:
+        account: The Account member (e.g., 'FCCS_Net Income').
+        entity: The Entity member (default: 'FCCS_Total Geography').
+        period: The Period member (default: 'Jan').
+        years: The Years member (default: 'FY24').
+        scenario: The Scenario member (default: 'Actual').
+
+    Returns:
+        dict: The retrieved data for all Consolidation members.
+    """
+    consolidation_members = [
+        "FCCS_Entity Input",
+        "FCCS_Entity Consolidation",
+        "FCCS_Entity Total",
+        "FCCS_Proportion",
+        "FCCS_Elimination",
+        "FCCS_Contribution"
+    ]
+    
+    results = {}
+    for consol_member in consolidation_members:
+        try:
+            grid_definition = {
+                "suppressMissingBlocks": True,
+                "pov": {
+                    "members": [
+                        [years], [scenario], ["FCCS_YTD"], [consol_member],
+                        ["FCCS_Intercompany Top"], ["FCCS_Total Data Source"],
+                        ["FCCS_Mvmts_Total"], [entity], ["Entity Currency"],
+                        ["Total Custom 3"], ["Total Region"], ["Total Venturi Entity"],
+                        ["Total Custom 4"]
+                    ]
+                },
+                "columns": [{"members": [[period]]}],
+                "rows": [{"members": [[account]]}]
+            }
+            result = await _client.export_data_slice(_app_name, "Consol", grid_definition)
+            
+            # Extract value from result
+            value = 0.0
+            if result and "rows" in result and len(result["rows"]) > 0:
+                row = result["rows"][0]
+                if "data" in row and len(row["data"]) > 0:
+                    try:
+                        value = float(row["data"][0])
+                    except (ValueError, TypeError):
+                        value = 0.0
+            
+            results[consol_member] = value
+        except Exception as e:
+            results[consol_member] = 0.0
+    
+    return {
+        "status": "success",
+        "data": {
+            "entity": entity,
+            "account": account,
+            "period": period,
+            "years": years,
+            "scenario": scenario,
+            "consolidation_breakdown": results,
+            "summary": {
+                "entity_input": results.get("FCCS_Entity Input", 0.0),
+                "entity_consolidation": results.get("FCCS_Entity Consolidation", 0.0),
+                "entity_total": results.get("FCCS_Entity Total", 0.0),
+                "proportion": results.get("FCCS_Proportion", 0.0),
+                "elimination": results.get("FCCS_Elimination", 0.0),
+                "contribution": results.get("FCCS_Contribution", 0.0)
+            }
+        }
+    }
+
+
 async def smart_retrieve_with_movement(
     account: str,
     movement: str,
     entity: str = "FCCS_Total Geography",
     period: str = "Jan",
     years: str = "FY24",
-    scenario: str = "Actual"
+    scenario: str = "Actual",
+    consolidation: str = "FCCS_Entity Total"
 ) -> dict[str, Any]:
     """Smart data retrieval with configurable Movement dimension / Recuperacao inteligente com dimensao Movement customizavel.
 
@@ -90,6 +180,7 @@ async def smart_retrieve_with_movement(
         period: The Period member (default: 'Jan').
         years: The Years member (default: 'FY24').
         scenario: The Scenario member (default: 'Actual').
+        consolidation: The Consolidation member (default: 'FCCS_Entity Total').
 
     Returns:
         dict: The retrieved data for the specified dimensions.
@@ -99,7 +190,7 @@ async def smart_retrieve_with_movement(
         "suppressMissingBlocks": True,
         "pov": {
             "members": [
-                [years], [scenario], ["FCCS_YTD"], ["FCCS_Entity Total"],
+                [years], [scenario], ["FCCS_YTD"], [consolidation],
                 ["FCCS_Intercompany Top"], ["FCCS_Total Data Source"],
                 [movement], [entity], ["Entity Currency"],
                 ["Total Custom 3"], ["Total Region"], ["Total Venturi Entity"],
@@ -224,6 +315,40 @@ TOOL_DEFINITIONS = [
                     "type": "string",
                     "description": "The Scenario member (default: 'Actual')",
                 },
+                "consolidation": {
+                    "type": "string",
+                    "description": "The Consolidation member (default: 'FCCS_Entity Total'). Valid values: 'FCCS_Entity Input', 'FCCS_Entity Consolidation', 'FCCS_Entity Total', 'FCCS_Proportion', 'FCCS_Elimination', 'FCCS_Contribution'.",
+                },
+            },
+            "required": ["account"],
+        },
+    },
+    {
+        "name": "smart_retrieve_consolidation_breakdown",
+        "description": "Retrieve all Consolidation dimension members (Entity Input, Entity Consolidation, Entity Total, Proportion, Elimination, Contribution) for an entity / Recuperar todos os membros da dimensao Consolidation para uma entidade",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string",
+                    "description": "The Account member (e.g., 'FCCS_Net Income')",
+                },
+                "entity": {
+                    "type": "string",
+                    "description": "The Entity member (default: 'FCCS_Total Geography')",
+                },
+                "period": {
+                    "type": "string",
+                    "description": "The Period member (default: 'Jan')",
+                },
+                "years": {
+                    "type": "string",
+                    "description": "The Years member (default: 'FY24')",
+                },
+                "scenario": {
+                    "type": "string",
+                    "description": "The Scenario member (default: 'Actual')",
+                },
             },
             "required": ["account"],
         },
@@ -257,6 +382,10 @@ TOOL_DEFINITIONS = [
                 "scenario": {
                     "type": "string",
                     "description": "The Scenario member (default: 'Actual')",
+                },
+                "consolidation": {
+                    "type": "string",
+                    "description": "The Consolidation member (default: 'FCCS_Entity Total')",
                 },
             },
             "required": ["account", "movement"],
