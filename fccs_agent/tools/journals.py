@@ -19,38 +19,43 @@ def set_app_name(app_name: str):
 
 
 async def get_journals(
-    scenario: Optional[str] = None,
-    year: Optional[str] = None,
-    period: Optional[str] = None,
-    status: Optional[str] = None,
+    scenario: str,
+    year: str,
+    period: str,
+    consolidation: str = "FCCS_Entity Input",
+    view: str = "FCCS_Periodic",
+    status: str = "Posted",
     offset: int = 0,
     limit: int = 100
 ) -> dict[str, Any]:
-    """Retrieve consolidation journals with optional filters / Obter diarios de consolidacao.
+    """Retrieve consolidation journals with filters / Obter diarios de consolidacao.
+
+    Note: FCCS REST API requires scenario, year, period, consolidation, view, and status.
 
     Args:
-        scenario: Filter by scenario.
-        year: Filter by year.
-        period: Filter by period.
-        status: Filter by status.
+        scenario: Filter by scenario (required, e.g., 'Actual').
+        year: Filter by year (required, e.g., 'FY25').
+        period: Filter by period (required, e.g., 'Jan', 'Feb', 'Mar').
+        consolidation: Filter by consolidation member (default: 'FCCS_Entity Input').
+        view: Filter by view (default: 'FCCS_Periodic').
+        status: Filter by status (default: 'Posted'). Valid: 'Working', 'Submitted', 'Approved', 'Rejected', 'Posted'.
         offset: Offset for pagination (default: 0).
         limit: Limit results (default: 100).
 
     Returns:
         dict: List of journals.
     """
-    filters = {}
-    if scenario:
-        filters["scenario"] = scenario
-    if year:
-        filters["year"] = year
-    if period:
-        filters["period"] = period
-    if status:
-        filters["status"] = status
+    filters = {
+        "scenario": scenario,
+        "year": year,
+        "period": period,
+        "consolidation": consolidation,
+        "view": view,
+        "status": status,
+    }
 
     journals = await _client.get_journals(
-        _app_name, filters if filters else None, offset, limit
+        _app_name, filters, offset, limit
     )
     return {"status": "success", "data": journals}
 
@@ -167,13 +172,16 @@ TOOL_DEFINITIONS = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "scenario": {"type": "string", "description": "Filter by scenario"},
-                "year": {"type": "string", "description": "Filter by year"},
-                "period": {"type": "string", "description": "Filter by period"},
-                "status": {"type": "string", "description": "Filter by status"},
+                "scenario": {"type": "string", "description": "Filter by scenario (required, e.g., 'Actual')"},
+                "year": {"type": "string", "description": "Filter by year (required, e.g., 'FY25')"},
+                "period": {"type": "string", "description": "Filter by period (required, e.g., 'Jan', 'Feb', 'Mar')"},
+                "consolidation": {"type": "string", "description": "Filter by consolidation member (default: 'FCCS_Entity Input')", "default": "FCCS_Entity Input"},
+                "view": {"type": "string", "description": "Filter by view (default: 'FCCS_Periodic')", "default": "FCCS_Periodic"},
+                "status": {"type": "string", "description": "Filter by status (default: 'Posted'). Valid: 'Working', 'Submitted', 'Approved', 'Rejected', 'Posted'", "default": "Posted"},
                 "offset": {"type": "number", "description": "Offset for pagination (default: 0)"},
                 "limit": {"type": "number", "description": "Limit results (default: 100)"},
             },
+            "required": ["scenario", "year", "period"],
         },
     },
     {

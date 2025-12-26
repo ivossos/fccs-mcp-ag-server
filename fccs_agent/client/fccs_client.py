@@ -389,20 +389,23 @@ class FccsClient:
         if self.config.fccs_mock_mode:
             return {"items": [], "offset": offset, "limit": limit, "count": 0}
 
-        query_parts = []
+        # Build query parameters
+        params = {"offset": offset, "limit": limit}
+        
         if filters:
+            # Build the q parameter as a JSON-like string
             filter_parts = []
-            for key in ["scenario", "year", "period", "status"]:
+            for key in ["scenario", "year", "period", "status", "consolidation", "view", "entity", "group", "label", "description"]:
                 if key in filters:
                     filter_parts.append(f'"{key}":"{filters[key]}"')
             if filter_parts:
-                query_parts.append(f"q={{{','.join(filter_parts)}}}")
+                # Use proper JSON format for the q parameter
+                params["q"] = "{" + ",".join(filter_parts) + "}"
 
-        query_parts.extend([f"offset={offset}", f"limit={limit}"])
-        query = "?" + "&".join(query_parts)
-
+        # Use httpx params to handle URL encoding automatically
         response = await self._client.get(
-            f"/{app_name}/journals{query}{self._get_query_params(True)}"
+            f"/{app_name}/journals",
+            params=params
         )
 
         if response.status_code == 200:
@@ -411,7 +414,15 @@ class FccsClient:
                 data["message"] = "No journals currently exist in the system."
             return data
 
-        return {"items": [], "offset": offset, "limit": limit, "count": 0}
+        # Return error details if not 200
+        return {
+            "items": [],
+            "offset": offset,
+            "limit": limit,
+            "count": 0,
+            "error": f"HTTP {response.status_code}",
+            "detail": response.text[:500] if response.text else "No response body"
+        }
 
     async def get_journal_details(
         self,
